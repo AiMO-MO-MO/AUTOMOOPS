@@ -14,8 +14,12 @@ app = Flask(__name__, template_folder="automoops/web/templates")
 
 from automoops.extraction.moops_order import extract_order
 from automoops.workflows.itf import run_itf
+from automoops.workflows.efs import run_efs
 
-WORKFLOWS = {"itf": ("ITF Form", run_itf)}
+WORKFLOWS = {
+    "itf": ("ITF Form", run_itf),
+    "efs": ("EFS Order", run_efs),
+}
 
 # All Playwright work is submitted here and executed in the main thread
 _task_queue = queue.Queue()

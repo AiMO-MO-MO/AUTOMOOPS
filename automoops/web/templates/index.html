@@ -11,11 +11,13 @@
     .container { max-width: 900px; margin: 32px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }
     .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
     .card h2 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #888; margin-bottom: 16px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
-    .instruction { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px 18px; font-size: 0.9rem; color: #1e40af; margin-bottom: 0; }
-    button { padding: 12px 24px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s; width: 100%; }
-    .btn-extract { background: #059669; color: #fff; font-size: 1rem; padding: 14px; }
-    .btn-extract:hover { background: #047857; }
-    .btn-workflow { background: #1a1a2e; color: #fff; }
+    .url-row { display: flex; gap: 10px; }
+    input[type="text"] { flex: 1; padding: 11px 14px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    input[type="text"]:focus { border-color: #4f46e5; }
+    button { padding: 11px 22px; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-load { background: #059669; color: #fff; white-space: nowrap; }
+    .btn-load:hover { background: #047857; }
+    .btn-workflow { background: #1a1a2e; color: #fff; padding: 12px 28px; }
     .btn-workflow:hover { background: #2d2d4e; }
     .status { font-size: 0.88rem; padding: 10px 14px; border-radius: 6px; margin-top: 12px; display: none; }
     .status.info  { background: #eff6ff; color: #1d4ed8; display: block; }
@@ -23,11 +25,11 @@
     .status.error { background: #fef2f2; color: #991b1b; display: block; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
     .field label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #999; display: block; margin-bottom: 3px; }
     .field .value { font-size: 0.93rem; color: #1a1a2e; word-break: break-word; white-space: pre-wrap; }
     .field .value.empty { color: #ccc; font-style: italic; }
     .workflow-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-    .btn-workflow { width: auto; padding: 12px 28px; }
     #results { display: none; }
     #workflow-section { display: none; }
   </style>
@@ -37,9 +39,9 @@
 <div class="container">
 
   <div class="card">
-    <div class="instruction">Navigate to a MOOPS order in the Playwright browser window, then click Extract.</div>
-    <div style="margin-top: 14px;">
-      <button class="btn-extract" onclick="doExtract()">Extract Order Data</button>
+    <div class="url-row">
+      <input type="text" id="moops-url" placeholder="Paste MOOPS order URL and press Enter..." />
+      <button class="btn-load" onclick="load()">Load &amp; Extract</button>
     </div>
     <div id="status" class="status"></div>
   </div>
@@ -92,12 +94,18 @@
     el.className = "value" + (v ? "" : " empty");
   }
 
-  async function doExtract() {
-    setStatus("Extracting...", "info");
+  async function load() {
+    const url = document.getElementById("moops-url").value.trim();
+    if (!url) return;
+    setStatus("Loading and extracting...", "info");
     document.getElementById("results").style.display = "none";
     document.getElementById("workflow-section").style.display = "none";
     try {
-      const res = await fetch("/extract", { method: "POST" });
+      const res = await fetch("/load", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
       const data = await res.json();
       if (data.error) { setStatus("Error: " + data.error, "error"); return; }
       currentOrder = data;
@@ -114,7 +122,7 @@
       setField("f-ship-zip", s.shipping_zip);
       setField("f-ship-contact", s.shipping_contact);
       setField("f-ship-phone", s.shipping_phone);
-      setStatus("Extracted successfully.", "ok");
+      setStatus("Extracted.", "ok");
       document.getElementById("results").style.display = "block";
       document.getElementById("workflow-section").style.display = "block";
     } catch (e) {
@@ -123,7 +131,7 @@
   }
 
   async function runWorkflow(key, name) {
-    if (!currentOrder) { setStatus("Extract an order first.", "error"); return; }
+    if (!currentOrder) { setStatus("Load an order first.", "error"); return; }
     setStatus("Running " + name + "...", "info");
     try {
       const res = await fetch("/workflow/" + key, {
@@ -133,7 +141,7 @@
       });
       const data = await res.json();
       if (data.ok) {
-        setStatus(name + " form filled — review and submit in the Playwright browser.", "ok");
+        setStatus(name + " form filled — review and submit in the browser window.", "ok");
       } else {
         setStatus("Error: " + data.error, "error");
       }
@@ -141,6 +149,10 @@
       setStatus("Error: " + e.message, "error");
     }
   }
+
+  document.getElementById("moops-url").addEventListener("keydown", e => {
+    if (e.key === "Enter") load();
+  });
 </script>
 </body>
 </html>
