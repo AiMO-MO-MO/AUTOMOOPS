@@ -10,7 +10,7 @@ def main():
             headless=False
         )
 
-        page = context.new_page()
+        page = context.pages[0] if context.pages else context.new_page()
 
 
         print("\nAUTOMOOPS is running.")
@@ -42,8 +42,7 @@ def main():
 
             print("\n--- Done. Navigate to the next order. ---\n")
 
-        # Do NOT auto-close browser unless quitting
-        browser.close()
+        context.close()
 
 
 if __name__ == "__main__":
