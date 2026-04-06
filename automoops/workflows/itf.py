@@ -47,10 +47,4 @@ def run_itf(page, order: Dict[str, Any]) -> None:
         lot.click()
         itf_page.get_by_role("option", name="Laundromat", exact=True).click()
 
-    # --- Human review pause ---
-    input(
-        "\n✅ ITF form filled in new tab.\n"
-        "Review + submit manually, then press Enter to return to Moops..."
-    )
-
-    print("Leaving ITF tab open. Returning to Moops.\n")
+    print("[Workflow] ITF form filled — review and submit in the browser tab.")
