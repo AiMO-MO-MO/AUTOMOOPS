@@ -16,7 +16,7 @@ def run_itf(page, order: Dict[str, Any]) -> None:
     itf_page = context.new_page()
 
     print("Opening ITF form in new tab...")
-    itf_page.goto(ITF_URL)
+    itf_page.goto(ITF_URL, wait_until="domcontentloaded")
 
 
     # --- Fill core fields ---

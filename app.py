@@ -129,7 +129,7 @@ if __name__ == "__main__":
         # Main thread stays here processing Playwright tasks
         while True:
             try:
-                fn, result_q = _task_queue.get(timeout=0.5)
+                fn, result_q = _task_queue.get(timeout=0.05)
                 try:
                     result = fn()
                     result_q.put(("ok", result))
