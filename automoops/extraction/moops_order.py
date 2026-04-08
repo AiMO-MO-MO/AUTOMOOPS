@@ -61,6 +61,51 @@ def _parse_shipping_to_block(text: str) -> Dict[str, Any]:
     return out
 
 
+def _extract_products(page) -> Dict[str, Any]:
+    """
+    Extracts product line items from the order page.
+
+    Returns:
+        vac_qty       - total qty of all VAC-prefix items
+        reader_kits   - total qty of all CR- prefix items (1 CR = 1 reader kit)
+        cards         - list of {code, qty} for CARD-MD- prefix items
+        other         - list of {code, qty} for everything else
+    """
+    vac_qty = 0
+    reader_kits = 0
+    cards: List[Dict[str, Any]] = []
+    other: List[Dict[str, Any]] = []
+
+    rows = page.locator('tr[id^="existing_part_order_"]').all()
+    for row in rows:
+        try:
+            code = row.locator('th[scope="row"] a').inner_text().strip()
+        except Exception:
+            continue
+        try:
+            qty_str = row.locator('input').first.input_value().strip()
+            qty = int(qty_str) if qty_str.isdigit() else 0
+        except Exception:
+            qty = 0
+
+        if code.upper().startswith("VAC"):
+            vac_qty += qty
+        elif code.upper().startswith("CR-"):
+            reader_kits += qty
+        elif code.upper().startswith("CARD-MD-"):
+            cards.append({"code": code, "qty": qty})
+        else:
+            if code.upper() not in ("SVC-LAUNDROMAT", "CARD-03-01"):
+                other.append({"code": code, "qty": qty})
+
+    return {
+        "vac_qty": vac_qty,
+        "reader_kits": reader_kits,
+        "cards": cards,
+        "other": other,
+    }
+
+
 def extract_order(page) -> Dict[str, Any]:
     # Internal Mitech Notes
     notes_raw = page.locator(SELECTORS["internal_mitech_notes"]).input_value()
@@ -69,6 +114,9 @@ def extract_order(page) -> Dict[str, Any]:
     # Shipping To textarea
     shipping_raw = page.locator(SELECTORS["shipping_to"]).input_value()
     shipping = _parse_shipping_to_block(shipping_raw)
+
+    # Products
+    products = _extract_products(page)
 
     return {
         "so_url": page.url,
@@ -83,4 +131,7 @@ def extract_order(page) -> Dict[str, Any]:
 
         # Shipping (structured)
         "shipping": shipping,
+
+        # Products (categorized)
+        "products": products,
     }

@@ -30,6 +30,11 @@
     .field .value { font-size: 0.93rem; color: #1a1a2e; word-break: break-word; white-space: pre-wrap; }
     .field .value.empty { color: #ccc; font-style: italic; }
     .workflow-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    .product-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f4f4f4; font-size: 0.92rem; }
+    .product-row:last-child { border-bottom: none; }
+    .product-code { color: #1a1a2e; font-family: monospace; }
+    .product-qty { font-weight: 700; color: #4f46e5; }
+    .product-section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #bbb; margin: 10px 0 4px; }
     #results { display: none; }
     #workflow-section { display: none; }
   </style>
@@ -67,6 +72,11 @@
         <div class="field"><label>Phone</label><div class="value" id="f-ship-phone"></div></div>
       </div>
     </div>
+  </div>
+
+  <div class="card" id="products-section" style="display:none">
+    <h2>Order Products</h2>
+    <div id="products-content"></div>
   </div>
 
   <div class="card" id="workflow-section">
@@ -122,12 +132,44 @@
       setField("f-ship-zip", s.shipping_zip);
       setField("f-ship-contact", s.shipping_contact);
       setField("f-ship-phone", s.shipping_phone);
+      renderProducts(data.products || {});
       setStatus("Extracted.", "ok");
       document.getElementById("results").style.display = "block";
+      document.getElementById("products-section").style.display = "block";
       document.getElementById("workflow-section").style.display = "block";
     } catch (e) {
       setStatus("Error: " + e.message, "error");
     }
+  }
+
+  function renderProducts(p) {
+    const el = document.getElementById("products-content");
+    let html = "";
+
+    if (p.vac_qty > 0) {
+      html += '<div class="product-section-label">VACs</div>';
+      html += `<div class="product-row"><span class="product-code">VAC</span><span class="product-qty">${p.vac_qty}</span></div>`;
+    }
+    if (p.reader_kits > 0) {
+      html += '<div class="product-section-label">Reader Kits</div>';
+      html += `<div class="product-row"><span class="product-code">Reader Kit</span><span class="product-qty">${p.reader_kits}</span></div>`;
+    }
+    if (p.cards && p.cards.length > 0) {
+      html += '<div class="product-section-label">Cards</div>';
+      for (const c of p.cards) {
+        html += `<div class="product-row"><span class="product-code">${c.code}</span><span class="product-qty">${c.qty}</span></div>`;
+      }
+    }
+    if (p.other && p.other.length > 0) {
+      html += '<div class="product-section-label">Other</div>';
+      for (const c of p.other) {
+        html += `<div class="product-row"><span class="product-code">${c.code}</span><span class="product-qty">${c.qty}</span></div>`;
+      }
+    }
+    if (!html) {
+      html = '<div style="color:#bbb;font-size:0.88rem;font-style:italic">No products found.</div>';
+    }
+    el.innerHTML = html;
   }
 
   async function runWorkflow(key, name) {
