@@ -68,7 +68,6 @@ def run_efs(page, order: Dict[str, Any]) -> None:
     efs_page.evaluate("""
         (d) => {
             const f = (name, val) => { const el = document.querySelector('input[name="' + name + '"]'); if (el) el.value = val; };
-            f('custEmail',        d.email);
             f('custPhone',        d.phone);
             f('custBillFName',    d.firstName);
             f('custBillLName',    d.lastName);
@@ -88,7 +87,6 @@ def run_efs(page, order: Dict[str, Any]) -> None:
             }
         }
     """, {
-        "email":     order.get("email", ""),
         "phone":     shipping.get("shipping_phone", ""),
         "firstName": shipping.get("shipping_first_name", ""),
         "lastName":  shipping.get("shipping_last_name", ""),
