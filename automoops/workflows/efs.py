@@ -63,7 +63,7 @@ def run_efs(page, order: Dict[str, Any]) -> None:
     efs_page.wait_for_selector('input[name="custBillFName"]', timeout=15000)
     print("[EFS] Form ready")
 
-    # Fill all billing fields in one JS call
+    # Fill all billing + order fields and state in one JS call
     state_abbr = _state_abbr(shipping.get("shipping_state", ""))
     efs_page.evaluate("""
         (d) => {
@@ -76,8 +76,16 @@ def run_efs(page, order: Dict[str, Any]) -> None:
             f('custBillAddress1', d.address);
             f('custBillCity',     d.city);
             f('custBillZip',      d.zip);
-            const sel = document.querySelector('select[name="custBillState"]');
-            if (sel && d.state) sel.value = d.state;
+            f('orderNum',         d.orderNum);
+            const cb = document.querySelector('input[name="orderReqSignature"]');
+            if (cb) cb.checked = true;
+            if (d.state) {
+                const sel = document.querySelector('select[name="custBillStateID"]');
+                if (sel) {
+                    const opt = Array.from(sel.options).find(o => o.text.includes('(' + d.state + ')'));
+                    if (opt) sel.value = opt.value;
+                }
+            }
         }
     """, {
         "email":     order.get("email", ""),
@@ -88,6 +96,7 @@ def run_efs(page, order: Dict[str, Any]) -> None:
         "address":   shipping.get("shipping_street", ""),
         "city":      shipping.get("shipping_city", ""),
         "zip":       shipping.get("shipping_zip", ""),
+        "orderNum":  order.get("so_number", ""),
         "state":     state_abbr,
     })
 

@@ -76,6 +76,10 @@
 
   <div class="card" id="products-section" style="display:none">
     <h2>Order Products</h2>
+    <div class="two-col" style="margin-bottom:14px">
+      <div class="field"><label>Sales Order</label><div class="value" id="f-so-number"></div></div>
+      <div class="field"><label>SO URL</label><div class="value" id="f-so-url"></div></div>
+    </div>
     <div id="products-content"></div>
   </div>
 
@@ -132,6 +136,8 @@
       setField("f-ship-zip", s.shipping_zip);
       setField("f-ship-contact", s.shipping_contact);
       setField("f-ship-phone", s.shipping_phone);
+      setField("f-so-number", data.so_number);
+      setField("f-so-url", data.so_url);
       renderProducts(data.products || {});
       setStatus("Extracted.", "ok");
       document.getElementById("results").style.display = "block";

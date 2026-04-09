@@ -118,8 +118,16 @@ def extract_order(page) -> Dict[str, Any]:
     # Products
     products = _extract_products(page)
 
+    # Sales Order number from page header
+    try:
+        so_text = page.locator('article#order-details .card-header span.font-weight-bold').inner_text()
+        so_number = so_text.replace("Sales Order", "").strip()
+    except Exception:
+        so_number = ""
+
     return {
         "so_url": page.url,
+        "so_number": so_number,
 
         # From notes
         "customer_name": parsed_notes.get("location_name", ""),
