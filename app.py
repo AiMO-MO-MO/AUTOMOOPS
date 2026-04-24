@@ -15,10 +15,12 @@ app = Flask(__name__, template_folder="automoops/web/templates")
 from automoops.extraction.moops_order import extract_order
 from automoops.workflows.itf import run_itf
 from automoops.workflows.efs import run_efs
+from automoops.workflows.intercom import run_intercom
 
 WORKFLOWS = {
     "itf": ("ITF Form", run_itf),
     "efs": ("EFS Order", run_efs),
+    "intercom": ("Fortis Email", run_intercom),
 }
 
 # All Playwright work is submitted here and executed in the main thread
